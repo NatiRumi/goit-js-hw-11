@@ -10,9 +10,9 @@ searchBtn.addEventListener('submit', event => {
 
     const searchValue = document.querySelector('input').value.trim();
 
-    getImage(searchValue)
-    .then((responce) => {console.log(response)})
-    .catch((error) => console.error(error)); 
+getImage(searchValue)
+.then((responce) => {console.log(response.data.hits)})
+.catch((error) => console.error(error)); 
 })
 
 
@@ -32,10 +32,11 @@ function getImage(search) {
             Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.');
             return;
         };
-        // console.log(response.data.hits);
+        console.log(response.data.hits);
         return response.data.hits;
     })
     .catch((error) => console.error(error))
+    console.log();
 };
 
 
