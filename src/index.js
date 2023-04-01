@@ -1,70 +1,93 @@
 import axios from "axios";
 import Notiflix from 'notiflix';
-// import { getImage } from "../src/js/requestAPI";
+import NewsApiService from "./js/requestAPI";
+import renderCollection from "./js/markupImg";
+import SimpleLightbox from "simplelightbox";
+import "simplelightbox/dist/simple-lightbox.min.css";
 
+const body = document.querySelector('body');
 const searchBtn = document.querySelector('#search-form');
+const loadMoreBtn = document.querySelector('.load-more');
+const galleryBox = document.querySelector('.gallery');
+const newsApiService = new NewsApiService();
+const counter = document.querySelector('.img-counter');
+let lightbox = new SimpleLightbox('.gallery a');
 
+searchBtn.addEventListener('submit', onSearch); 
+loadMoreBtn.addEventListener('click', onLoadMore);
 
-searchBtn.addEventListener('submit', event => {
-    event.preventDefault();
+async function onSearch(event) {
+  event.preventDefault();
 
-    const searchValue = document.querySelector('input').value.trim();
+  if(event.currentTarget.elements.searchQuery.value.trim() === "") {
+    Notiflix.Notify.warning("Введіть значення для пошуку");
+    return;
+  }
 
-getImage(searchValue)
-.then((responce) => {console.log(response.data.hits)})
-.catch((error) => console.error(error)); 
-})
+  if(newsApiService.value == event.currentTarget.elements.searchQuery.value.trim()) {
+    return;
+  }
 
+  newsApiService.value = event.currentTarget.elements.searchQuery.value.trim();
 
-function getImage(search) {
-    const searchParams = new URLSearchParams({
-        key: '34747655-3d476a5c24b1ab5d2173a79ca',
-        q: search,
-        image_type: "photo",
-        orientation: "horizontal",
-        safesearch: "true"
-    })
+  newsApiService.resetPage();
 
-    axios
-    .get(`https://pixabay.com/api/?${searchParams.toString()}`)
-    .then((response) => {
-        if(response.data.hits == 0){
-            Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.');
-            return;
-        };
-        console.log(response.data.hits);
-        return response.data.hits;
-    })
-    .catch((error) => console.error(error))
-    console.log();
-};
+  const collection = await newsApiService.fetchArticles();
 
+  if(collection.hits == 0) {
+    Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.');
+    return;
+  };
 
+  LoadMoreBtnHide();
+  clearCollection();
+  renderCollection(collection.hits);
+  lightbox.refresh();
 
-function renderCollection(collection) {
-    const galleryBox = document.querySelector('.gallery');
-    galleryBox.innerHTML = '';
-    const images = collection.map(item => {
-        return `<div class="photo-card">
-        <img src="${item.webformatURL}" alt="${item.tags}" loading="lazy" />
-        <div class="info">
-          <p class="info-item">
-            <b>Likes</b> ${item.likes}
-          </p>
-          <p class="info-item">
-            <b>Views</b>  ${item.views}
-          </p>
-          <p class="info-item">
-            <b>Comments</b>  ${item.comments}
-          </p>
-          <p class="info-item">
-            <b>Downloads</b> ${item.downloads}
-          </p>
-        </div>
-      </div>`
-    }).join("");
-    galleryBox.insertAdjacentHTML('beforeend', images);
+  if(collection.totalHits > newsApiService.per_page) {
+    LoadMoreBtnActiv();
+    counterActive();
+    counter.innerHTML = `Ми знайшли для вас ще ${collection.totalHits - newsApiService.per_page * (newsApiService.page - 1)}  зображень`;
+  } 
 }
 
+async function onLoadMore() {
+  
+  const collection = await newsApiService.fetchArticles();
 
+  renderCollection(collection.hits);
+  lightbox.refresh();
 
+  if(newsApiService.page > Math.ceil(Number(collection.totalHits / newsApiService.per_page)) ) {
+    Notiflix.Notify.failure("We're sorry, but you've reached the end of search results.");
+    LoadMoreBtnHide();
+    counteraHide();
+    return;
+  };
+     
+  if((collection.totalHits - newsApiService.per_page * (newsApiService.page - 1)) > 0) {
+    // console.log(collection.totalHits - newsApiService.per_page * (newsApiService.page - 1));
+    counterActive();
+    counter.innerHTML = `Ми знайшли для вас ще ${collection.totalHits - newsApiService.per_page * (newsApiService.page - 1)}  зображень`;
+  }
+}
+
+function clearCollection() {
+  galleryBox.innerHTML = '';
+}
+
+function LoadMoreBtnActiv() {
+  loadMoreBtn.style.display = "block";
+}
+
+function LoadMoreBtnHide() {
+  loadMoreBtn.style.display = "none";
+}
+
+function counterActive() {
+  counter.style.display = "block";
+}
+
+function counteraHide() {
+  counter.style.display = "none";
+}

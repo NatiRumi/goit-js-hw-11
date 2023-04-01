@@ -1,6 +1,51 @@
+body {
+    text-align: center;
+    background-color: cornsilk;
+}
+
 form {
     background-color: blue;
     padding-top: 20px;
     padding-bottom: 20px;
     text-align: center;
+}
+
+.gallery {
+    padding: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.photo-card {
+    width: calc((100% - 60px)/4);
+    margin-bottom: 15px;
+    border: 0.5px solid blue;
+    padding: 5px;
+}
+
+.photo-card {
+    img {
+        width: 100%;
+        height: auto;
+    }
+}
+
+.load-more {
+    margin-bottom: 20px;
+    margin-left: auto;
+    margin-right: auto;
+    display: none;
+}
+
+.img-counter {
+    display: none;
+    color: blue;
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 30px;
+}
+
+a {
+    text-decoration: none;
 }
