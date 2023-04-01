@@ -31,6 +31,7 @@ async function onSearch(event) {
   newsApiService.value = event.currentTarget.elements.searchQuery.value.trim();
 
   newsApiService.resetPage();
+  counterClear();
 
   const collection = await newsApiService.fetchArticles();
 
@@ -43,20 +44,28 @@ async function onSearch(event) {
   clearCollection();
   renderCollection(collection.hits);
   lightbox.refresh();
+  console.log(collection);
+  console.log(collection.totalHits);
 
   if(collection.totalHits > newsApiService.per_page) {
     LoadMoreBtnActiv();
     counterActive();
     counter.innerHTML = `Ми знайшли для вас ще ${collection.totalHits - newsApiService.per_page * (newsApiService.page - 1)}  зображень`;
   } 
+
+  if(collection.totalHits < newsApiService.per_page) {
+    Notiflix.Notify.warning("На жаль, по Вашому запиту ми змогли знайти лише ці кілька зображень");
+  }
 }
 
 async function onLoadMore() {
-  
+  counterClear();
   const collection = await newsApiService.fetchArticles();
 
   renderCollection(collection.hits);
   lightbox.refresh();
+  console.log(collection);
+  console.log(collection.totalHits);
 
   if(newsApiService.page > Math.ceil(Number(collection.totalHits / newsApiService.per_page)) ) {
     Notiflix.Notify.failure("We're sorry, but you've reached the end of search results.");
@@ -66,7 +75,6 @@ async function onLoadMore() {
   };
      
   if((collection.totalHits - newsApiService.per_page * (newsApiService.page - 1)) > 0) {
-    // console.log(collection.totalHits - newsApiService.per_page * (newsApiService.page - 1));
     counterActive();
     counter.innerHTML = `Ми знайшли для вас ще ${collection.totalHits - newsApiService.per_page * (newsApiService.page - 1)}  зображень`;
   }
@@ -90,4 +98,8 @@ function counterActive() {
 
 function counteraHide() {
   counter.style.display = "none";
+}
+
+function counterClear() {
+  counter.innerHTML = "";
 }
